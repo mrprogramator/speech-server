@@ -4,6 +4,7 @@ var http = require('http');
 var bodyParser = require('body-parser');
 var request = require('request');
 var fs = require('fs');
+var url = require('url');
 
 // Put these statements before you define any routes.
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -18,10 +19,14 @@ app.listen(process.env.PORT || 8080, function () {
 
 
 
-app.post('/get-speech', function (req, res) {
+app.get('/get-speech', function (req, res) {
 	console.log('requesting speech');
-	message = "hola mundo";
-	
+
+	var url_parts = url.parse(req.url, true);
+	var query = url_parts.query;
+
+	message = query.t;
+	voice = query.r;
 	var headers = {
 	    'User-Agent':       'Super Agent/0.0.1',
 	    'Content-Type':     'application/json'
@@ -47,16 +52,27 @@ app.post('/get-speech', function (req, res) {
 			    'Content-Type':'audio/mp3'
 			}
 			var options2 = {
-			    url: "http://api.naturalreaders.com/v2/tts/?t='" + message + "'&r=" + 19 + "&s=1&requesttoken=" + x.requesttoken,
+			    url: "http://api.naturalreaders.com/v2/tts/?t=" + message + "&r=" + voice + "&s=1&requesttoken=" + x.requesttoken,
 			    method: 'POST',
 			    headers: headers2,
 			}
-			request(options2, function (err, respo, bod){
-				if (!err && respo.statusCode == 200) {
-					console.log(bod);
-					res.send(bod);
-				}
+			var c = request(options2, function (err, respo, bod){
+				respo.setEncoding('binary');
 			})
+
+			var audio = '';
+			c.on('data', function (data) {
+				audio += data.toString('binary');
+			});
+
+			c.on('end', function(){
+		        fs.writeFile(x.requesttoken + '.mp3', audio, 'binary', function(err){
+		            if (err) throw err
+		            console.log('File saved.')
+		        	res.send(x.requesttoken);
+
+		        })
+		    })
 	    }
 	})
 });
