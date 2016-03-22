@@ -1,0 +1,13 @@
+{
+  "name": "speech-server",
+  "description": "N/A",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "*",
+    "body-parser": "*",
+    "http": "*",
+    "request": "*",
+    "fs": "*"
+  }
+}
