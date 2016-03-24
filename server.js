@@ -71,11 +71,6 @@ app.get('/get-speech', function (req, res) {
 			})
 
 			c.pipe(res);
-
-			c.on('end', function(){
-				console.log('audio sent');
-	        	res.send();
-		    })
 	    }
 	})
 });
