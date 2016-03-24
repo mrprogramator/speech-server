@@ -20,13 +20,16 @@ app.listen(process.env.PORT || 8080, function () {
 
 
 app.get('/get-speech', function (req, res) {
-	console.log('requesting speech');
+	console.log('requesting speech...');
 
 	var url_parts = url.parse(req.url, true);
 	var query = url_parts.query;
 
 	message = query.t;
 	voice = query.r;
+	
+	console.log('message:', message, 'voice:', voice);
+
 	var headers = {
 	    'User-Agent':       'Super Agent/0.0.1',
 	    'Content-Type':     'application/json'
@@ -39,8 +42,12 @@ app.get('/get-speech', function (req, res) {
 	}
 	 
 	request(options, function (error, response, body) {
-	    if (!error && response.statusCode == 200) {
+		if (error) { 
+			console.log('error getting requesttoken:', error);
+			res.send(error);
+		}
 
+	    if (!error && response.statusCode == 200) {
 	    	body = body.replace('?','');
 	    	body = body.replace('(','');
 	    	body = body.replace(')','');
@@ -56,22 +63,18 @@ app.get('/get-speech', function (req, res) {
 			    method: 'POST',
 			    headers: headers2,
 			}
-			var c = request(options2, function (err, respo, bod){
-				respo.setEncoding('binary');
+			var c = request(options2, function (err){
+				if (err) { 
+					console.log('error getting audio:'. err);
+					res.send(error);
+				}
 			})
 
-			var audio = '';
-			c.on('data', function (data) {
-				audio += data.toString('binary');
-			});
+			c.pipe(res);
 
 			c.on('end', function(){
-		        fs.writeFile(x.requesttoken + '.mp3', audio, 'binary', function(err){
-		            if (err) throw err
-		            console.log('File saved.')
-		        	res.send(x.requesttoken);
-
-		        })
+				console.log('audio sent');
+	        	res.send();
 		    })
 	    }
 	})
